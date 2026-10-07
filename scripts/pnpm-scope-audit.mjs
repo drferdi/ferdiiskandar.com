@@ -25,15 +25,26 @@ export function findWorkspaceRoot(startDir) {
 }
 
 export function toAuditProjectPath(projectDir, workspaceRoot) {
-  return path.relative(workspaceRoot, projectDir).split(path.sep).join('\\')
+  const relative = path.relative(workspaceRoot, projectDir).split(path.sep).join('\\')
+  // pnpm audit --ignore-workspace uses "." for the workspace-root package.
+  return relative === '' ? '.' : relative
+}
+
+function pathAffectsProject(findingPath, auditProjectPath) {
+  if (findingPath === auditProjectPath) {
+    return true
+  }
+
+  // pnpm emits both "pkg > dep" and "pkg>dep" (no spaces) depending on version.
+  return (
+    findingPath.startsWith(`${auditProjectPath} >`) ||
+    findingPath.startsWith(`${auditProjectPath}>`)
+  )
 }
 
 export function advisoryAffectsProject(advisory, auditProjectPath) {
   return advisory.findings?.some((finding) =>
-    finding.paths?.some(
-      (findingPath) =>
-        findingPath.startsWith(`${auditProjectPath} >`) || findingPath === auditProjectPath,
-    ),
+    finding.paths?.some((findingPath) => pathAffectsProject(findingPath, auditProjectPath)),
   )
 }
 
@@ -107,10 +118,7 @@ function run() {
 
   for (const advisory of relevantAdvisories) {
     const affectedPaths = advisory.findings.flatMap((finding) =>
-      finding.paths.filter(
-        (findingPath) =>
-          findingPath.startsWith(`${auditProjectPath} >`) || findingPath === auditProjectPath,
-      ),
+      finding.paths.filter((findingPath) => pathAffectsProject(findingPath, auditProjectPath)),
     )
 
     console.error('')

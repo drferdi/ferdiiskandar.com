@@ -3,12 +3,16 @@ packages:
 
 overrides:
   postcss: 8.5.23
-  sharp: 0.35.3
-  js-yaml: 4.3.1
+  sharp: 0.35.5
+  js-yaml: 4.3.2
+  undici: 7.29.1
+  source-map-js: 1.2.2
+  tinypool: 2.1.2
+  smol-toml: 1.9.0
+  brace-expansion@<2: 1.1.21
+  brace-expansion@>=2 <3: 2.1.7
+  brace-expansion@>=4: 5.0.12
 
 allowBuilds:
   esbuild: true
   sharp: true
-
-patchedDependencies:
-  next@16.2.12: patches/next@16.2.12.patch
